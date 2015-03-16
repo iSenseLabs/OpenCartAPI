@@ -1,7 +1,9 @@
 <?php
+namespace OpenCart;
+
 class CurlRequest {
     private $url;
-    private $postData;
+    private $postData = array();
     private $cookies = array();
     private $response = '';
     private $handle;
@@ -354,7 +356,7 @@ class OpenCart {
     public $voucher;
 
     public function __construct($url, $sessionFile = '') {
-        $this->url = rtrim(preg_replace('/^https?\:/', 'http:', $url), '/') . '/index.php?route=api/';
+        $this->url = rtrim('http://'.preg_replace('/^https?\:\/\//', '', $url), '/') . '/index.php?route=api/';
         $this->curl = new CurlRequest($sessionFile);
         $this->cart = new Cart($this);
         $this->order = new Order($this);
@@ -419,6 +421,6 @@ class OpenCart {
     }
 }
 
-class InvalidCredentialsException extends Exception {}
-class InvalidDataException extends Exception {}
-class InvalidProductException extends Exception {}
+class InvalidCredentialsException extends \Exception {}
+class InvalidDataException extends \Exception {}
+class InvalidProductException extends \Exception {}
