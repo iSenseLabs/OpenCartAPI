@@ -143,7 +143,7 @@ class Cart extends Base {
 }
 
 class Order extends Base {
-    public function add($shipping_method = '', $comment = '', $affiliate_id = '', $order_satus_id = '') {
+    public function add($shipping_method = '', $comment = '', $affiliate_id = '', $order_status_id = '') {
         $postData = array(
             'shipping_method' => $shipping_method,
             'comment' => $comment,
@@ -403,7 +403,7 @@ class OpenCart {
         return $this->curl->getResponse();
     }
 
-    public function customer($customer_id = 0, $customer_group_id = 0, $firstname = '', $lastname = '', $email = '', $telephone = '', $fax = '') {
+    public function customer($customer_id = 0, $customer_group_id = 0, $firstname = '', $lastname = '', $email = '', $telephone = '', $fax = '', $extra = array()) {
         $postData = array(
             'customer_id' => $customer_id,
             'customer_group_id' => $customer_group_id,
@@ -411,9 +411,9 @@ class OpenCart {
             'lastname' => $lastname,
             'email' => $email,
             'telephone' => $telephone,
-            'fax' => $fax
-        );
-
+            'fax' => $fax,
+        ) + $extra;
+        
         $this->curl->setUrl($this->getUrl('customer'));
         $this->curl->setData($postData);
         $this->curl->makeRequest();
