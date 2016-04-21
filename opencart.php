@@ -143,7 +143,7 @@ class Cart extends Base {
 }
 
 class Order extends Base {
-    public function add($shipping_method = '', $comment = '', $affiliate_id = '', $order_satus_id = '') {
+    public function add($shipping_method = '', $comment = '', $affiliate_id = '', $order_status_id = '') {
         $postData = array(
             'shipping_method' => $shipping_method,
             'comment' => $comment,
