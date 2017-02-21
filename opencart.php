@@ -367,7 +367,7 @@ class OpenCart {
     }
 
     public function getUrl($method) { return $this->url . $method; }
-    public function getCookie() { return $cookie; }
+    public function getCookie() { return $this->cookie; }
     public function getLastError() { return $this->lastError; }
 
     public function login($username, $password) {
