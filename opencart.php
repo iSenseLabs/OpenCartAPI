@@ -21,7 +21,7 @@ class CurlRequest {
         if (empty($this->sessionFile)) return;
 
         if (!file_exists(dirname($this->sessionFile))) {
-            mkdir(dirname($this->sessionFile, 0755, true));
+            mkdir(dirname($this->sessionFile), 0755, true);
         }
 
         file_put_contents($this->sessionFile, json_encode($this->cookies));
