@@ -32,7 +32,9 @@ OpenCart($url, $sessionFile = '')
 OpenCart->getUrl($method)
 OpenCart->getCookie()
 OpenCart->getLastError()
-OpenCart->login($username, $password)
+OpenCart->login($username, $password) // For OpenCart versions lower than 2.1.0.1
+OpenCart->login($apiKey) // For OpenCart versions higher than 2.1.0.1 and lower than 3.x
+OpenCart->login($username, $apiKey) // For OpenCart 3.x versions
 OpenCart->coupon($coupon)
 OpenCart->customer($customer_id = 0, $customer_group_id = 0, $firstname = '', $lastname = '', $email = '', $telephone = '', $fax = '')
 ```

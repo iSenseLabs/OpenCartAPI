@@ -28,7 +28,7 @@ class CurlRequest {
     }
 
     private function restoreSession() {
-        if (file_exists($this->sessionFile)) {
+        if (!empty($this->sessionFile) && file_exists($this->sessionFile)) {
             $this->cookies = json_decode(file_get_contents($this->sessionFile), true);
         }
     }
@@ -344,9 +344,16 @@ class Voucher extends Base {
 }
 
 class OpenCart {
+    const API_VERSION_AUTO = 0;
+    const API_VERSION_1 = 1;
+    const API_VERSION_2 = 2;
+    const API_VERSION_3 = 3;
+
     private $cookie;
+    private $token;
     private $url;
     private $lastError = '';
+    public $apiVersion;
     public $curl;
     public $cart;
     public $order;
@@ -356,7 +363,8 @@ class OpenCart {
     public $voucher;
 
     public function __construct($url, $sessionFile = '') {
-        $this->url = rtrim('http://'.preg_replace('/^https?\:\/\//', '', $url), '/') . '/index.php?route=api/';
+        $this->url = rtrim('http://'.preg_replace('/^https?\:\/\//', '', $url), '/') . '/index.php?';
+        $this->apiVersion = OpenCart::API_VERSION_AUTO;
         $this->curl = new CurlRequest($sessionFile);
         $this->cart = new Cart($this);
         $this->order = new Order($this);
@@ -366,22 +374,78 @@ class OpenCart {
         $this->voucher = new Voucher($this);
     }
 
-    public function getUrl($method) { return $this->url . $method; }
+    public function getUrl($method) {
+        switch ($this->apiVersion) {
+        case OpenCart::API_VERSION_AUTO:
+            return $this->url . 'api_token=' . $this->token . '&route=api/' . $method;
+            break;
+        case OpenCart::API_VERSION_1:
+            return $this->url . 'route=api/' . $method;
+            break;
+        case OpenCart::API_VERSION_2:
+            return $this->url . 'token=' . $this->token . '&route=api/' . $method;
+            break;
+        case OpenCart::API_VERSION_3:
+            return $this->url . 'api_token=' . $this->token . '&route=api/' . $method;
+            break;
+        default:
+            throw new UnknownOpenCartVersionException("Unknown OpenCart Version");
+            break;
+        }
+    }
+
     public function getCookie() { return $this->cookie; }
+    public function getToken() { return $this->token; }
     public function getLastError() { return $this->lastError; }
 
-    public function login($username, $password) {
-        if (empty($username) || empty($password)) throw new InvalidCredentialsException("Username and password cannot be empty");
+    public function login() {
+        $args = func_get_args();
+        $argsCount = count($args);
 
         $this->curl->setUrl($this->getUrl('login'));
-        $this->curl->setData(array(
-            'username' => $username,
-            'password' => $password
-        ));
-        $this->curl->makeRequest();
 
+        switch ($argsCount) {
+        case 0:
+            throw new InvalidCredentialsException("Login called with no parameters! Please provide either an API key, or username and password for OpenCart versions older than 2.0.3.1");
+            break;
+        case 1:
+            $apiKey = $args[0];
+            if (empty($apiKey)) throw new InvalidCredentialsException("API key cannot be empty");
+
+            $this->curl->setData(array(
+                'key' => $apiKey,
+            ));
+            break;
+        case 2:
+            list($username, $password) = $args;
+            if (empty($username) || empty($password)) throw new InvalidCredentialsException("Username and password cannot be empty");
+
+            $this->curl->setData(array(
+                'username' => $username,
+                'password' => $password,
+                'key' => $password
+            ));
+            break;
+        default:
+            throw new InvalidCredentialsException("Login called with invalid number of parameters! Please provide either an API key, or username and password for OpenCart versions older than 2.0.3.1");
+            break;
+        }
+
+        $this->curl->makeRequest();
         $response = $this->curl->getResponse();
-        if (isset($response['success']) && isset($response['cookie'])) {
+
+        if (isset($response['success'])) {
+            if (isset($response['cookie'])) {
+                $this->apiVersion = OpenCart::API_VERSION_1;
+                $this->cookie = $response['cookie'];
+            } else if (isset($response['token'])) {
+                $this->apiVersion = OpenCart::API_VERSION_2;
+                $this->token = $response['token'];
+            } else if (isset($response['api_token'])) {
+                $this->apiVersion = OpenCart::API_VERSION_3;
+                $this->token = $response['api_token'];
+            }
+
             return true;
         } else if (isset($response['error'])) {
             $this->lastError = $response['error'];
@@ -424,3 +488,4 @@ class OpenCart {
 class InvalidCredentialsException extends \Exception {}
 class InvalidDataException extends \Exception {}
 class InvalidProductException extends \Exception {}
+class UnknownOpenCartVersionException extends \Exception {}
