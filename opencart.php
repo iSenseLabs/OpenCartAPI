@@ -363,7 +363,7 @@ class OpenCart {
     public $voucher;
 
     public function __construct($url, $sessionFile = '') {
-        $this->url = rtrim('http://'.preg_replace('/^https?\:\/\//', '', $url), '/') . '/index.php?';
+        $this->url = (!preg_match('/^https?\:\/\//', $url) ? 'http://' : '') . rtrim($url, '/') . '/index.php?';
         $this->apiVersion = OpenCart::API_VERSION_AUTO;
         $this->curl = new CurlRequest($sessionFile);
         $this->cart = new Cart($this);
