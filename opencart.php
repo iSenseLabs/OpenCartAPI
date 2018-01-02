@@ -80,12 +80,38 @@ class CurlRequest {
 }
 
 class Base {
+    public $dynamicRoute = array();
+
     protected $oc;
     protected $curl;
 
     public function __construct($oc) {
         $this->oc = $oc;
         $this->curl = $oc->curl;
+
+        $classParts = explode('\\', get_class($this));
+        $class = end($classParts);
+        if ($class != 'Base') {
+            $this->dynamicRoute[] = strtolower($class);
+        }
+    }
+
+    public function __get($name) {
+        $voidProp = new Base($this->oc);
+        $voidProp->dynamicRoute = $this->dynamicRoute;
+        $voidProp->dynamicRoute[] = $name;
+        return $voidProp;
+    }
+
+    public function __call($name, $postData) {
+        $dynamicRoute = $this->dynamicRoute;
+        $dynamicRoute[] = $name;
+        $route = implode('/', $dynamicRoute);
+
+        $this->curl->setUrl($this->oc->getUrl($route));
+        $this->curl->setData($postData);
+        $this->curl->makeRequest();
+        return $this->curl->getResponse();
     }
 }
 
@@ -372,6 +398,11 @@ class OpenCart {
         $this->reward = new Reward($this);
         $this->shipping = new Shipping($this);
         $this->voucher = new Voucher($this);
+    }
+
+    public function __get($name) {
+        $voidProp = new Base($this);
+        return $voidProp->{$name};
     }
 
     public function getUrl($method) {
