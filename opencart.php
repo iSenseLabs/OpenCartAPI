@@ -103,7 +103,8 @@ class Base {
         return $voidProp;
     }
 
-    public function __call($name, $postData) {
+    public function __call($name, $args) {
+	$postData = $args[0];
         $dynamicRoute = $this->dynamicRoute;
         $dynamicRoute[] = $name;
         $route = implode('/', $dynamicRoute);
