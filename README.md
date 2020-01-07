@@ -8,7 +8,7 @@ OpenCart->cart->edit($key, $quantity);
 OpenCart->cart->remove($key);
 OpenCart->cart->products();
 
-OpenCart->order->add($shipping_method = '', $comment = '', $affiliate_id = '', $order_satus_id = '')
+OpenCart->order->add($shipping_method = '', $comment = '', $affiliate_id = '', $order_status_id = '')
 OpenCart->order->edit($order_id, $shipping_method = '', $comment = '', $affiliate_id = '', $order_status_id = '')
 OpenCart->order->delete($order_id)
 OpenCart->order->history($order_id, $order_status_id = '', $notify = '', $append = '', $comment = '')
